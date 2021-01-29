@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<title>W3.CSS Template</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karma">
+<style>
+body,h1,h2,h3,h4,h5,h6 {font-family: "Karma", sans-serif}
+.w3-bar-block .w3-bar-item {padding:20px}
+</style>
+<body>
+
+<div id="reload">
+  <!-- Sidebar (hidden by default) -->
+  <nav class="w3-sidebar w3-bar-block w3-card w3-top w3-xlarge w3-animate-left" style="display:none;z-index:2;width:40%;min-width:300px" id="mySidebar">
+    <a href="javascript:void(0)" onclick="w3_close()"
+    class="w3-bar-item w3-button">Close Menu</a>
+    <%= link_to "Main Page", root_path, method: 'get', class: "w3-bar-item w3-button"%>
+    <%= link_to "New Article", new_article_path, method: 'get', class: "w3-bar-item w3-button"%>
+  </nav>
+
+  <!-- Top menu -->
+  <div class="w3-top">
+    <div class="w3-white w3-xlarge" style="max-width:100%;margin:auto">
+      <div class="w3-button w3-padding-16 w3-left" onclick="w3_open()">☰</div>
+      <div class="w3-center w3-padding-16" style="font-size:35px">Articles</div>
+      <div class="w3-center w3-padding-16"> Our blog has <%= Article.public_count %> articles and counting!</div>
+    </div>
+  </div>
+    
+  <!-- !PAGE CONTENT! -->
+  <div class="w3-main w3-content w3-padding" style="max-width:75%;margin-top:125px">
+
+    <!-- First Photo Grid-->
+    <div class="w3-row-padding w3-padding-16 w3-center" id="food">
+      <% @articles.each do |article| %>
+        <div class="w3-quarter">
+          <% unless article.archived? %>
+          <h3>id: <%= article.id %> 
+          <br>
+          <%= link_to article.title, article %>
+          </h3>
+          <h4> <%= article.body %> </h4>
+          <% article.comments.each do |comment| %>
+          Commenter : <%= comment.commenter %>
+          <br>
+          id: <%= comment.id%> Comment : <%= comment.body %>
+          <br>
+          <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+</div>
+
+<div class="w3-center">
+  <div>
+    <input id="id" type='text' placeholder='Article Id'/>
+    <input id="title" type="text" placeholder="Title"/>
+    <input id="description" type="textarea" placeholder="Description"/>
+    <button onclick='sendData({}, "api/articles.json", "GET");'>Index</button>
+    <button onclick='sendData({}, url_for(), "GET");'>Show</button>
+    <button onclick='sendData({article:{title: "", body: get_description(), status: "public"}}, "/api/articles.json" , "POST");'>Create Error</button>
+    <button onclick='sendData({article:{title: get_title(), body: get_description(), status: "public"}}, "/api/articles.json" , "POST");'>Create</button>
+    <button onclick='sendData({article:{title: "", body: get_description(), status: "public"}}, url_for() , "PUT");'>Update Error</button>
+    <button onclick='sendData({article:{title: get_title(), body: get_description(), status: "public"}}, url_for() , "PUT");'>Update</button>
+    <button onclick='sendData({}, url_for(), "DELETE");'>Delete</button>
+    <br/>
+    <br/>
+    <input id="commentId" type="text" placeholder="Comment Id"/>
+    <input id="commenter" type="text" placeholder="Commenter"/>
+    <input id="comment" type="text" placeholder="Comments"/>
+    <button onclick='sendData({}, url_article_comment(), "GET");'>Index Comment</button>
+    <button onclick='sendData({}, url_for_comment(), "GET");'>Show Comment</button>
+    <button onclick='sendData({comment:{commenter: "", body: get_comment(), status:"public"}}, url_article_comment(),"POST");'>Create Comment Error</button>
+    <button onclick='sendData({comment:{commenter: get_commenter(), body: get_comment(), status:"public"}}, url_article_comment(),"POST");'>Create Comment</button>
+    <button onclick='sendData({}, url_for_comment(),"DELETE");'>Delete Comment</button>
+  </div>
+  <br/>
+  Request Answer:
+  <br/>
+  <textarea id="request" rows="25" cols="125"></textarea>
+</div>
+
+<script>
+// Script to open and close sidebar
+function w3_open() {
+  document.getElementById("mySidebar").style.display = "block";
+}
+ 
+function w3_close() {
+  document.getElementById("mySidebar").style.display = "none";
+}
+
+function url_for(){
+  var id = $("#id").val() || 1;
+  console.log("api/articles/"+id+".json");
+  return "api/articles/"+id+".json";
+}
+
+function url_for_comment(){
+  var id = $("#id").val();
+  var idComment = $("#commentId").val();
+  return "api/articles/"+id+"/comments/"+idComment+".json";
+}
+
+function url_article_comment(){
+  var id = $("#id").val();
+  return "api/articles/"+id+"/comments.json";
+}
+
+function get_comment(){
+  var comment = $("#comment").val();
+  if(comment == "")
+  {
+    comment = "New Comment";
+  }
+  return comment;
+}
+
+function get_commenter()
+{
+  var commenter = $("#commenter").val();
+  if(commenter == "")
+  {
+    commenter = "Dev";
+  }
+  return commenter;
+}
+
+function get_title()
+{
+  var title = $("#title").val();
+  if(title == "")
+  {
+    title = "New Article";
+  }
+  return title;
+}
+
+function get_description(){
+  var description = $("#description").val();
+  if(description == "")
+  {
+    description = "Ruby is Nice :)";
+  }
+  return description;
+}
+
+function sendData(data, url, method){
+        $.ajax({
+            method: method,
+            url: url,
+            data: data,
+            dataType: "json"
+        }).done(function( msg ) {
+            $("#reload").load(location.href + " #reload");
+            $('#request').val(JSON.stringify(msg));
+        }).fail(function(xhr, msg) {
+
+            $('#request').val('code HTTP: ' + xhr.status + '\n' + xhr.responseText);
+        })
+        .always(function() {
+            alert( "complete" );
+        });
+}
+
+</script>
+
+</body>
+</html>
